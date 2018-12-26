@@ -4,6 +4,7 @@ const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const JWT = require('jsonwebtoken');
 const passport = require("passport");
+const { check, validationResult } = require('express-validator/check');
 
 //Load User Model
 const User = require('../../models/User');
@@ -18,11 +19,34 @@ router.get('/test', (req, res) => res.json({msg: 'User Works'}));
 //@route    Get api/users/register
 //@desc     Register Users Route
 //@access   Public
-router.post('/register', (req, res) => {
-    User.findOne({email : req.body.email}).then(user => {
-        if(user) {
-            return res.status(400).json({email: 'Email is already Exist'});
-        }else {
+router.post('/register', [
+    // name must be 2 characters long
+    check('name', 'Name must be 2+ character Long').isLength({ min : 2 }),
+    // Email must be email and also findOne if there is in exist
+    check('email', 'its not a valid Email').isEmail().custom(email => {
+      return User.findOne({email}).then(user => {
+        if (user) {
+          return Promise.reject('E-mail already in use');
+        }
+      });
+    }),
+    // password must be 5 charchters long
+    check('password', 'The password must be 5+ chars long and contain a number')
+    .not().isIn(['123', 'password', 'god']).withMessage('Do not use a common word as the password')
+    .isLength({ min: 5 })
+    .matches(/\d/)
+  ],
+    
+
+  (req, res) => {
+    
+
+    const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        }
+
+    
 
             const avatar = gravatar.url(req.body.email, {
                 s: '200', //Size
@@ -44,9 +68,9 @@ router.post('/register', (req, res) => {
                 .then(user => res.json(user))
                 .catch(err => console.log(err));
             })
-        }
+        
     })
-});
+
 
 //@route    Post api/users/login
 //@desc     Login Users Route / Returning JWT Token

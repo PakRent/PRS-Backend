@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const passport = require('passport');
+const expressValidator = require('express-validator');
 
 
 const users = require('./routes/api/users');
@@ -28,6 +29,8 @@ require('./config/passport')(passport);
 app.use(bodyParser.urlencoded({ extended : false }));
 //Parse application Json
 app.use(bodyParser.json());
+//Express validator
+app.use(expressValidator());
 
 // Use Routes
 app.use('/api/users', users);
