@@ -5,6 +5,7 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 
 
+
 const users = require('./routes/api/users');
 const profile = require('./routes/api/profile');
 const posts = require('./routes/api/posts');
@@ -16,6 +17,10 @@ const db = require('./config/keys').mongoURI;
 mongoose.connect(db)
     .then(() => console.log('MongoDB Connected'))
     .catch((err) => console.log(err));
+
+    
+
+
 
 const app = express();
 

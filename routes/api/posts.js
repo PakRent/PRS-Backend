@@ -37,14 +37,14 @@ router.get('/test', (req, res) => res.json({msg: 'Posts Works'}));
 
   
   
-  router.post("/", upload.array('image', 12), (req, res) => {
-      console.log(req.files);
+  router.post("/", upload.single('image'), (req, res) => {
+      console.log(req.file);
     const post = new Post({
       _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
       description : req.body.description,
       price: req.body.price,
-      image: req.files
+      image: req.file.path
     });
     post
       .save()
