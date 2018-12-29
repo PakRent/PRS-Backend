@@ -25,6 +25,25 @@ router.get('/', passport.authenticate('jwt', {session : false }), (req, res) => 
         })
 });
 
+
+router.get('/:handle', (req, res) => {
+
+    const errors = {};
+
+    Profile.findOne({ handle : req.params.handle})
+        .populate('user', ['name', 'avatar'])
+        .then(profile => {
+            if(!profile){
+                errors.noprofile = 'There is No Profile for This User';
+                return res.status(404).json(errors);
+            }  
+                 res.json(profile)
+        
+        })
+        .catch(err => res.json(err));
+})
+
+
 router.post('/', [check('handle', 'Must Be provide a handle Name').isEmpty()],passport.authenticate('jwt', {session : false }), (req, res) => {
 
     
