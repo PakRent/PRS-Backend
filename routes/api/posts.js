@@ -98,6 +98,9 @@ router.post("/", upload.single('image'), passport.authenticate('jwt', {session:f
       });
   });
   
+//@route    Delete api/posts
+//@desc     Delete post
+//@access   Private
 
 router.delete('/:id', passport.authenticate('jwt', {session:false}), (req, res) => {
     Profile.findOne({user : req.user.id})
@@ -112,5 +115,62 @@ router.delete('/:id', passport.authenticate('jwt', {session:false}), (req, res) 
         })
 
 });
+
+//@route    Like api/posts/like/:id
+//@desc     Like post
+//@access   Private
+
+router.delete('/like/:id', passport.authenticate('jwt', {session:false}), (req, res) => {
+    Profile.findOne({user : req.user.id})
+        .then(profile => {
+            Post.findById(req.params.id)
+            .then(post =>{
+                if(
+                    post.likes.filter(like => like.user.toString() === req.user.id).length > 0
+                ){
+                    return res.status(400).json({alreadyLiked : 'user already liked this'})
+                }
+
+                post.likes.unshift({user : req.user.id});
+
+                post.save().then(post => res.json(post));
+            })
+            .catch(err => res.status(404))
+        })
+
+});
+
+
+//@route    unLike api/posts/unlike/:id
+//@desc     unLike post
+//@access   Private
+
+router.delete('/unlike/:id', passport.authenticate('jwt', {session:false}), (req, res) => {
+    Profile.findOne({user : req.user.id})
+        .then(profile => {
+            Post.findById(req.params.id)
+            .then(post =>{
+                if(
+                    post.likes.filter(like => like.user.toString() === req.user.id).length === 0
+                ){
+                    return res.status(400).json({notLiked : 'You have not liked this post'})
+                }
+
+                // Get remove index
+                const removeIndex = post.likes
+                    .map(item => item.user.toString())
+                    .indexOf(req.user.id);
+
+                //splice out of array
+                post.likes.splice(removeIndex, 1);
+
+                //save
+                post.save().then(post => res.json(post));
+            })
+            .catch(err => res.status(404))
+        })
+
+});
+
 
 module.exports= router;
