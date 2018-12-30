@@ -172,5 +172,29 @@ router.delete('/unlike/:id', passport.authenticate('jwt', {session:false}), (req
 
 });
 
+//@route    api/posts/comment/:id
+//@desc     comment post
+//@access   Private
+router.post('/comment/:id', passport.authenticate('jwt', { session : false}), (req, res) => {
+    Post.findById(req.params.id)
+        .then(post => {
+            const newComment = {
+                text : req.body.text,
+                avatar : req.user.avatar,
+                name: req.user.name
+            }
+
+            // add comment to array
+
+            post.comments.unshift(newComment);
+
+            // save
+
+            post.save().then(post => res.json(post));
+        })
+        .catch(err => res.status(404).json(err))
+
+})
+
 
 module.exports= router;
