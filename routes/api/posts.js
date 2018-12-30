@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const multer = require('multer');
+const passport = require('passport');
 
 
 const storage = multer.diskStorage({
@@ -34,23 +35,28 @@ const Post = require('../../models/Posts');
 //@access   Public
 router.get('/test', (req, res) => res.json({msg: 'Posts Works'}));
 
-
+//@route    Post api/posts
+//@desc     Create Post Route
+//@access   Private
   
-  
-  router.post("/", upload.single('image'), (req, res) => {
+router.post("/", upload.single('image'), passport.authenticate('jwt', {session:false}), (req, res) => {
       console.log(req.file);
     const post = new Post({
       _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
       description : req.body.description,
       price: req.body.price,
-      image: req.file.path
+      image: req.file.path,
+      user: req.user.id,
+      name:req.user.name,
+      avatar:req.user.avatar
+
     });
     post
       .save()
       .then(result => {
         console.log(result);
-        res.status(201).json({msg : 'Post save Succesfully'});
+        res.status(201).json(post);
       })
       .catch(err => {
         console.log(err);
