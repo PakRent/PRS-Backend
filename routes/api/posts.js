@@ -71,19 +71,24 @@ router.get('/:name', passport.authenticate('jwt', {session:false}), (req, res) =
 //@desc     Create Post Route
 //@access   Private
   
-router.post("/", upload.single('image'), passport.authenticate('jwt', {session:false}), (req, res) => {
-      console.log(req.file);
+router.post("/", upload.array('image', 12), passport.authenticate('jwt', {session:false}), (req, res) => {
+      console.log(req.files);
+      let array = [];
+        for (let i = 0; i < req.files.length; i++) {
+            array[i] = req.files[i].path;
+        }
     const post = new Post({
       _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
       description : req.body.description,
       price: req.body.price,
-      image: req.file.path,
+      image: array,
       user: req.user.id,
       name:req.user.name,
       avatar:req.user.avatar
 
     });
+    
     post
       .save()
       .then(result => {
