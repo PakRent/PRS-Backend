@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const expressValidator = require('express-validator');
+const cors = require('cors');
 
 
 
@@ -26,6 +27,8 @@ const app = express();
 
 // Passport middleware
 app.use(passport.initialize());
+
+app.use(cors());
 
 // Passport Config
 require('./config/passport')(passport);

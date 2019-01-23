@@ -21,11 +21,11 @@ router.get('/test', (req, res) => res.json({msg: 'User Works'}));
 //@access   Public
 router.post('/register', [
     // name must be 2 characters long
-    check('name', 'Name must be 2+ character Long').isLength({ min : 2 }),
+    check('user_name', 'Name must be 2+ character Long').isLength({ min : 2 }),
     // Email must be email and also findOne if there is in exist
     check('email', 'its not a valid Email').isEmail().custom(email => {
-      return User.findOne({email}).then(user => {
-        if (user) {
+      return User.find({email}).exec().then(user => {
+        if (!user) {
           return Promise.reject('E-mail already in use');
         }
       });
@@ -36,7 +36,7 @@ router.post('/register', [
     .isLength({ min: 5 })
     .matches(/\d/)
   ],
-    
+   
 
   (req, res) => {
     
@@ -48,14 +48,22 @@ router.post('/register', [
 
     
 
-            const avatar = gravatar.url(req.body.email, {
-                s: '200', //Size
-                r: 'pg', //rating
-                d: 'mm'  //Default
-            });
+        User.findOne({ email : req.body.email })
+        .then(user => {
+            if(user) {
+                errors.email = "Email already Exists";
+                return res.status(400).json(errors);
+            } else {
+                const avatar = gravatar.url(req.body.email, {
+                    s: '200', // Size
+                    r: 'pg', // Rating
+                    d: 'mm' // Default
+                });
 
             const newUser = new User ({
-                name : req.body.name,
+                first_name : req.body.first_name,
+                last_name : req.body.last_name,
+                user_name : req.body.user_name,
                 email: req.body.email,
                 password: req.body.password,
                 avatar,
@@ -66,11 +74,11 @@ router.post('/register', [
                 newUser.password = hash;
                 newUser.save()
                 .then(user => res.json(user))
-                .catch(err => console.log(err));
+                .catch(err => console.log(err)); 
             })
-        
-    })
-
+        }
+    });
+});
 
 //@route    Post api/users/login
 //@desc     Login Users Route / Returning JWT Token
@@ -80,24 +88,25 @@ router.post('/login', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
 
+   
     // Find user by email
-    User.findOne({email})
+    User.findOne({email}).exec()
         .then(user => {
             //check for user
 
-            if(!user) {
+            if(!user ) {
                 return res.status(400).json({email : 'User not Found'});
             }
 
             //check password
 
-            bcrypt.compare(password, user.password)
+            bcrypt.compare(password, User.password)
                 .then(isMatch => {
                     if(isMatch){
                         
                         // User Matched
 
-                            const payload = {id: user.id, name: user.name} // Create JWT Paylod
+                            const payload = {id: user.id, user_name: user.user_name} // Create JWT Paylod
                         // Sign Token
                             JWT.sign(payload, Keys.secretOrKey, { expiresIn : 3600}, (err, token) => {
                                 res.json({

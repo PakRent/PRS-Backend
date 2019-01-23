@@ -88,7 +88,7 @@ router.post("/", upload.array('image', 12), passport.authenticate('jwt', {sessio
       avatar:req.user.avatar
 
     });
-    
+     
     post
       .save()
       .then(result => {
